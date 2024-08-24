@@ -120,14 +120,6 @@ resource "aws_security_group" "public" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    description = "SSH from anywhere"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -137,6 +129,40 @@ resource "aws_security_group" "public" {
 
   tags = {
     Name = "allow_http_ssh"
+  }
+}
+
+resource "aws_security_group" "private" {
+  name        = "allow_nginx_wordpress"
+  description = "Allow HTTP inbound traffic within VPC"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "HTTP from nginx"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = aws_instance.nginx.private_ip
+  }
+
+  ingress {
+    description = "HTTP from wordpress"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = aws_instance.wordpress.private_ip
+  }
+
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "allow_nginx_wordpress"
   }
 }
 
@@ -194,7 +220,7 @@ resource "aws_instance" "wordpress" {
   ami                    = var.ami
   instance_type          = "t2.micro"
   subnet_id              = aws_subnet.public.id
-  vpc_security_group_ids = [aws_security_group.public.id]
+  vpc_security_group_ids = [aws_security_group.private.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_ssm_profile.name
 
   user_data = <<-EOF
@@ -219,7 +245,7 @@ resource "aws_instance" "mysql" {
   ami                    = var.ami
   instance_type          = "t2.micro"
   subnet_id              = aws_subnet.public.id
-  vpc_security_group_ids = [aws_security_group.public.id]
+  vpc_security_group_ids = [aws_security_group.private.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_ssm_profile.name
 
   user_data = <<-EOF
@@ -297,4 +323,8 @@ resource "aws_iam_role_policy" "flow_log_policy" {
       }
     ]
   })
+}
+
+output "seeds" {
+  value = [ aws_instance.nginx.private_ip, aws_instance.wordress.private_ip, aws_instance.mysql.private_ip ]
 }
