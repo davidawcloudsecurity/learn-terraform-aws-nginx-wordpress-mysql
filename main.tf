@@ -132,6 +132,18 @@ resource "aws_security_group" "public" {
   }
 }
 
+data "aws_instance" "nginx" {
+  instance_id = aws_instance.nginx.id
+}
+
+data "aws_instance" "wordpress" {
+  instance_id = aws_instance.wordpress.id
+}
+
+data "aws_instance" "mysql" {
+  instance_id = aws_instance.mysql.id
+}
+
 resource "aws_security_group" "private" {
   name        = "allow_nginx_wordpress"
   description = "Allow HTTP inbound traffic within VPC"
@@ -142,7 +154,7 @@ resource "aws_security_group" "private" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = aws_instance.nginx.private_ip
+    cidr_blocks = data.aws_instance.nginx.private_ip
   }
 
   ingress {
@@ -150,7 +162,7 @@ resource "aws_security_group" "private" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = aws_instance.wordpress.private_ip
+    cidr_blocks = data.aws_instance.wordpress.private_ip
   }
 
 
@@ -220,7 +232,7 @@ resource "aws_instance" "wordpress" {
   ami                    = var.ami
   instance_type          = "t2.micro"
   subnet_id              = aws_subnet.public.id
-  vpc_security_group_ids = [aws_security_group.public.id]
+  vpc_security_group_ids = [aws_security_group.private.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_ssm_profile.name
 
   user_data = <<-EOF
@@ -245,7 +257,7 @@ resource "aws_instance" "mysql" {
   ami                    = var.ami
   instance_type          = "t2.micro"
   subnet_id              = aws_subnet.public.id
-  vpc_security_group_ids = [aws_security_group.public.id]
+  vpc_security_group_ids = [aws_security_group.private.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_ssm_profile.name
 
   user_data = <<-EOF
