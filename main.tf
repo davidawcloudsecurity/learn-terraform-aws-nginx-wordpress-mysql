@@ -241,15 +241,23 @@ resource "aws_instance" "mysql" {
 }
 
 # VPC Flow Log
-resource "aws_flow_log" "main" {
-  iam_role_arn    = aws_iam_role.flow_log_role.arn
-  log_destination = aws_cloudwatch_log_group.flow_log.arn
-  traffic_type    = "ALL"
-  vpc_id          = aws_vpc.main.id
+data "aws_cloudwatch_log_group" "existing_flow_log" {
+  name = "/vpc/flow-log"
+
+  count = 1
 }
 
 resource "aws_cloudwatch_log_group" "flow_log" {
-  name = "/vpc/flow-log"
+  count = length(data.aws_cloudwatch_log_group.existing_flow_log) > 0 ? 0 : 1
+  name  = "/vpc/flow-log"
+}
+
+# Use this in your aws_flow_log resource
+resource "aws_flow_log" "main" {
+  iam_role_arn    = aws_iam_role.flow_log_role.arn
+  log_destination = length(data.aws_cloudwatch_log_group.existing_flow_log) > 0 ? data.aws_cloudwatch_log_group.existing_flow_log[0].arn : aws_cloudwatch_log_group.flow_log[0].arn
+  traffic_type    = "ALL"
+  vpc_id          = aws_vpc.main.id
 }
 
 resource "aws_iam_role" "flow_log_role" {
