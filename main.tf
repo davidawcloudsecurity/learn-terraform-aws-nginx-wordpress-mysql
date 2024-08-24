@@ -209,22 +209,6 @@ resource "aws_instance" "nginx" {
               service docker start
               usermod -a -G docker ec2-user
               docker pull nginx
-
-              # Create a custom NGINX configuration to point to the WordPress instance
-              echo '
-              server {
-                  listen 80;
-                  server_name localhost;
-
-                  location / {
-                      proxy_pass http://${aws_instance.wordpress.private_ip};
-                      proxy_set_header Host \$host;
-                      proxy_set_header X-Real-IP \$remote_addr;
-                      proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-                      proxy_set_header X-Forwarded-Proto \$scheme;
-                  }
-              }' > /etc/nginx/conf.d/default.conf
-
               docker run -d -p 80:80 -v /etc/nginx/conf.d:/etc/nginx/conf.d nginx
               EOF
 
