@@ -150,9 +150,8 @@ resource "aws_security_group" "private" {
     description = "HTTP from public subnet"
     from_port   = 3306
     to_port     = 3306
-    protocol    = "tcp"
-#    cidr_blocks = [aws_security_group.public.id]
-    security_groups = [aws_security_group.public.id]
+    protocol    = "TCP"
+    self        = true
   }
 
   egress {
