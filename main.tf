@@ -132,39 +132,26 @@ resource "aws_security_group" "public" {
   }
 }
 
-data "aws_instance" "nginx" {
-  instance_id = aws_instance.nginx.id
-}
-
-data "aws_instance" "wordpress" {
-  instance_id = aws_instance.wordpress.id
-}
-
-data "aws_instance" "mysql" {
-  instance_id = aws_instance.mysql.id
-}
-
 resource "aws_security_group" "private" {
   name        = "allow_nginx_wordpress"
   description = "Allow HTTP inbound traffic within VPC"
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description = "HTTP from nginx"
+    description = "HTTP from public subnet"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = data.aws_instance.nginx.private_ip
+    cidr_blocks = [aws_security_group.public.id]
   }
 
   ingress {
-    description = "HTTP from wordpress"
-    from_port   = 80
-    to_port     = 80
+    description = "HTTP from public subnet"
+    from_port   = 3306
+    to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = data.aws_instance.wordpress.private_ip
+    cidr_blocks = [aws_security_group.public.id]
   }
-
 
   egress {
     from_port   = 0
