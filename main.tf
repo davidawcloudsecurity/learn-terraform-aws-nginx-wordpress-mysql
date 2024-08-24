@@ -220,7 +220,7 @@ resource "aws_instance" "wordpress" {
   ami                    = var.ami
   instance_type          = "t2.micro"
   subnet_id              = aws_subnet.public.id
-  vpc_security_group_ids = [aws_security_group.private.id]
+  vpc_security_group_ids = [aws_security_group.public.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_ssm_profile.name
 
   user_data = <<-EOF
@@ -245,7 +245,7 @@ resource "aws_instance" "mysql" {
   ami                    = var.ami
   instance_type          = "t2.micro"
   subnet_id              = aws_subnet.public.id
-  vpc_security_group_ids = [aws_security_group.private.id]
+  vpc_security_group_ids = [aws_security_group.public.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_ssm_profile.name
 
   user_data = <<-EOF
