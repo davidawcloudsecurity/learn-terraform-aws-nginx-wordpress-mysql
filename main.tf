@@ -147,7 +147,7 @@ resource "aws_security_group" "private" {
   }
 
   ingress {
-    description = "HTTP from public subnet"
+    description = "MYSQL/Aurora from private subnet"
     from_port   = 3306
     to_port     = 3306
     protocol    = "TCP"
