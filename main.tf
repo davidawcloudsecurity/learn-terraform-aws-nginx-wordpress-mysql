@@ -143,7 +143,7 @@ resource "aws_security_group" "private" {
     to_port     = 80
     protocol    = "tcp"
 #    cidr_blocks = [aws_security_group.public.id]
-    security_group_id = aws_security_group.public.id
+    security_groups = [aws_security_group.public.id]
   }
 
   ingress {
@@ -152,7 +152,7 @@ resource "aws_security_group" "private" {
     to_port     = 3306
     protocol    = "tcp"
 #    cidr_blocks = [aws_security_group.public.id]
-    security_group_id = aws_security_group.public.id
+    security_groups = [aws_security_group.public.id]
   }
 
   egress {
