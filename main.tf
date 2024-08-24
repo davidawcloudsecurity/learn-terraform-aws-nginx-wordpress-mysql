@@ -223,9 +223,11 @@ resource "aws_instance" "nginx" {
                       proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
                       proxy_set_header X-Forwarded-Proto \$scheme;
                   }
-              }' > /etc/nginx/conf.d/default.conf
+              }' > ./default.conf
 
-              docker run -d -p 80:80 -v /etc/nginx/conf.d:/etc/nginx/conf.d nginx
+              docker run -d -p 80:80 --name nginx-demo nginx
+              docker cp default.conf nginx-demo:/etc/nginx/conf.d
+              docker exec nginx-demo nginx -s reload
               EOF
 
   tags = {
