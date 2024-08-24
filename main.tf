@@ -152,7 +152,7 @@ resource "aws_security_group" "private" {
     to_port     = 3306
     protocol    = "tcp"
 #    cidr_blocks = [aws_security_group.public.id]
-    security_groups = [aws_security_group.private.id]
+    security_groups = [aws_security_group.public.id]
   }
 
   egress {
@@ -209,13 +209,31 @@ resource "aws_instance" "nginx" {
               amazon-linux-extras install docker -y
               service docker start
               usermod -a -G docker ec2-user
-              docker run -d -p 80:80 nginx
+              docker pull nginx
+
+              # Create a custom NGINX configuration to point to the WordPress instance
+              echo '
+              server {
+                  listen 80;
+                  server_name localhost;
+
+                  location / {
+                      proxy_pass http://${aws_instance.wordpress.private_ip};
+                      proxy_set_header Host \$host;
+                      proxy_set_header X-Real-IP \$remote_addr;
+                      proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                      proxy_set_header X-Forwarded-Proto \$scheme;
+                  }
+              }' > /etc/nginx/conf.d/default.conf
+
+              docker run -d -p 80:80 -v /etc/nginx/conf.d:/etc/nginx/conf.d nginx
               EOF
 
   tags = {
     Name = "nginx-instance"
   }
 }
+
 
 resource "aws_instance" "wordpress" {
   ami                    = var.ami
