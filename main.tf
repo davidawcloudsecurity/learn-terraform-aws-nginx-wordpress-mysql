@@ -235,7 +235,6 @@ resource "aws_instance" "nginx" {
   }
 }
 
-
 resource "aws_instance" "wordpress" {
   ami                    = var.ami
   instance_type          = "t2.micro"
