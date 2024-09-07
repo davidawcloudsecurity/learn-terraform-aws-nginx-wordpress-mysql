@@ -210,9 +210,9 @@ resource "aws_instance" "nginx" {
               service docker start
               usermod -a -G docker ec2-user
               docker pull nginx
-
+              
               # Create a custom NGINX configuration to point to the WordPress instance
-              cat << EOF1 > ./default.conf
+              cat << EOF1 > /home/ec2-user/default.conf
               server {
                   listen 80;
                   server_name localhost;
@@ -228,7 +228,12 @@ resource "aws_instance" "nginx" {
               EOF1
 
               docker run -d -p 80:80 --name nginx-demo nginx;
-              docker cp default.conf nginx-demo:/etc/nginx/conf.d;
+              # Wait until the nginx-demo container is running
+              while [ "$(docker inspect -f '{{.State.Running}}' nginx-demo)" != "true" ]; do
+                  echo "Waiting for nginx-demo to start..."
+                  sleep 1
+              done
+              docker cp /home/ec2-user/default.conf nginx-demo:/etc/nginx/conf.d;
               docker exec nginx-demo nginx -s reload;
               EOF
 
