@@ -227,9 +227,9 @@ resource "aws_instance" "nginx" {
               }
               EOF1
 
-              docker run -d -p 80:80 --name nginx-demo nginx
-              docker cp default.conf nginx-demo:/etc/nginx/conf.d
-              docker exec nginx-demo nginx -s reload
+              docker run -d -p 80:80 --name nginx-demo nginx;
+              docker cp default.conf nginx-demo:/etc/nginx/conf.d;
+              docker exec nginx-demo nginx -s reload;
               EOF
 
   tags = {
